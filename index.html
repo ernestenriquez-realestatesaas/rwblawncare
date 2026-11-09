@@ -179,6 +179,8 @@ section{padding-block:72px}
 .qbar .field label{color:var(--muted)}
 .qbar .field input,.qbar .field select{background:var(--paper);color:var(--ink);padding:10px 12px}
 .qbar .btn{height:47px}
+.qbar .field[hidden]{display:none}
+@media (min-width:901px){.qbar .wrap:has(#qbLotField[hidden]){grid-template-columns:auto repeat(2,minmax(0,1fr)) auto}}
 @media (max-width:900px){.qbar .wrap{grid-template-columns:1fr 1fr}.qbar h3{grid-column:1/-1}.qbar .btn{grid-column:1/-1;justify-content:center}}
 /* steps */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px;counter-reset:st}
@@ -291,13 +293,13 @@ footer b{color:#fff;font-family:var(--display);font-size:22px;letter-spacing:.03
 </section>
 <div class="qbar" id="quick">
   <form class="wrap" id="qbForm" novalidate>
-    <h3>Get your price<small>3 quick answers, sent straight to Cody</small></h3>
+    <h3>Get your price<small id="qbHint">3 quick answers, sent straight to Cody</small></h3>
     <div class="field"><label for="qbSvc">Service</label>
-      <select id="qbSvc"><option>Lawn cuts</option><option>Sod installation</option><option>Tree trimming</option><option>Pressure washing</option><option>Cleanup / beds</option></select></div>
-    <div class="field"><label for="qbLot">Lot size</label>
+      <select id="qbSvc"><option>Lawn cuts</option><option>Sod installation</option><option>Tree trimming</option><option>Pressure washing</option><option>Cleanup / beds</option><option data-lighting>Holiday lighting</option><option data-lighting>Permanent lighting</option></select></div>
+    <div class="field" id="qbLotField"><label for="qbLot">Lot size</label>
       <select id="qbLot"><option value="">Choose one</option><option>Under 1/8 acre</option><option>1/8 to 1/4 acre</option><option>1/4 to 1/2 acre</option><option>1/2 to 1 acre</option><option>Over 1 acre</option><option>Not sure</option></select></div>
     <div class="field"><label for="qbZip">ZIP code</label><input id="qbZip" inputmode="numeric" maxlength="5" placeholder="78258"></div>
-    <button class="btn" type="submit">Text me a price</button>
+    <button class="btn" id="qbSubmit" type="submit">Text me a price</button>
   </form>
 </div>
 <div class="ticker" aria-hidden="true"><div class="track"><span>Sod Installation</span><span>Lawn Cuts</span><span>Tree Trimming</span><span>Pressure Washing</span><span>Yard Cleanups</span><span>Mulch & Beds</span><span>Veteran Owned</span><span>Free Quotes</span><span>Sod Installation</span><span>Lawn Cuts</span><span>Tree Trimming</span><span>Pressure Washing</span><span>Yard Cleanups</span><span>Mulch & Beds</span><span>Veteran Owned</span><span>Free Quotes</span></div></div>
@@ -691,9 +693,30 @@ function showMonth(i){
 showMonth(new Date().getMonth());
 
 // quick quote bar
+const quickService = $("qbSvc");
+const isLightingQuote = () => quickService.selectedOptions[0].hasAttribute("data-lighting");
+
+function updateQuickQuote() {
+  const lighting = isLightingQuote();
+  $("qbLotField").hidden = lighting;
+  $("qbSubmit").textContent = lighting ? "Continue to Lighting Quote" : "Text me a price";
+  $("qbHint").textContent = lighting ? "Tell Cody what you’d like lit" : "3 quick answers, sent straight to Cody";
+}
+quickService.addEventListener("change", updateQuickQuote);
+window.addEventListener("pageshow", updateQuickQuote);
+updateQuickQuote();
+
 $("qbForm").addEventListener("submit",e=>{
   e.preventDefault();
-  const lot=$("qbLot").value||"not sure", zip=$("qbZip").value.trim();
+  const zip = $("qbZip").value.trim();
+  if (isLightingQuote()) {
+    $("lighting-service").value = quickService.value;
+    if (zip) $("lighting-area").value = zip;
+    $("lighting-quote").scrollIntoView();
+    $("lighting-service").focus({preventScroll:true});
+    return;
+  }
+  const lot=$("qbLot").value||"not sure";
   const t=`Hi Cody, I'd like a price for ${$("qbSvc").value.toLowerCase()}. My lot size is ${lot.toLowerCase()}${zip?" and I'm in "+zip:""}.`;
   window.location.href="sms:+1"+PHONE.replace(/\D/g,"")+"?&body="+encodeURIComponent(t);
 });
