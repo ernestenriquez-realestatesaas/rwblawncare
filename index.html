@@ -219,6 +219,16 @@ section{padding-block:72px}
 .areas{display:flex;flex-wrap:wrap;gap:8px}
 .areas span{padding:8px 14px;border:1px solid var(--line);background:var(--card);border-radius:4px;font-weight:600;font-size:15px}
 
+/* lighting */
+#lighting{scroll-margin-top:72px;border-block:1px solid var(--line)}
+.lighting-options{display:grid;gap:12px}
+.lighting-options .svc{border:1px solid var(--line);padding:20px}
+.lighting-options h3{font-size:28px}
+#lighting-form{align-self:start;min-width:0}
+#lighting-form h3{font-size:30px}
+#lighting-draft[hidden]{display:none}
+#lighting-draft pre{overflow-wrap:anywhere}
+
 /* quote */
 .quote{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px}
 @media (max-width:860px){.quote{grid-template-columns:1fr}}
@@ -252,6 +262,7 @@ footer b{color:#fff;font-family:var(--display);font-size:22px;letter-spacing:.03
     </a>
     <nav class="links" aria-label="Sections">
       <a href="#services">Services</a>
+      <a href="#lighting">Lighting</a>
       <a href="#how">How It Works</a>
       <a href="#results">Results</a>
       <a href="#about">About</a>
@@ -337,10 +348,66 @@ footer b{color:#fff;font-family:var(--display);font-size:22px;letter-spacing:.03
         <ul><li>Overgrowth and lot clearing</li><li>Leaf and storm cleanup</li><li>Mulch and rock beds</li><li>Ask about anything else</li></ul>
       </article>
     </div>
-    <div class="cta-row"><a class="btn" href="#quick">Get My Price</a><span class="or">Quotes are always free</span></div>
+    <div class="cta-row"><a class="btn" href="#quick">Get My Price</a><a class="btn ghost" href="#lighting">Holiday &amp; Permanent Lighting</a><span class="or">Quotes are always free</span></div>
   </div>
 </section>
 
+
+<section id="lighting" aria-labelledby="lighting-title">
+  <div class="wrap quote">
+    <div class="contact-card">
+      <div class="sec-head" style="margin:0">
+        <span class="eyebrow">Lighting installation in San Antonio</span>
+        <h2 id="lighting-title">Holiday &amp; Permanent Lighting</h2>
+      </div>
+      <p>Light up your home for Christmas or get a clean, year-round setup for holidays, game days and everyday use.</p>
+      <div class="lighting-options">
+        <article class="svc">
+          <h3>Holiday Lighting</h3>
+          <p>Custom C9 rooflines, entry accents and tightly wrapped trees. Ask about installation and seasonal takedown.</p>
+        </article>
+        <article class="svc">
+          <h3>Permanent Lighting</h3>
+          <p>Year-round roofline lighting with colors you can change for the season or occasion.</p>
+        </article>
+      </div>
+      <p>Prefer to call? <a href="tel:+18122438146">812-243-8146</a></p>
+    </div>
+    <form class="qform" id="lighting-form" aria-labelledby="lighting-form-title">
+      <h3 id="lighting-form-title">Request a Free Lighting Quote</h3>
+      <div class="field">
+        <label for="lighting-name">Name</label>
+        <input id="lighting-name" autocomplete="name" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="lighting-service">Type of lighting</label>
+        <select id="lighting-service" required>
+          <option value="">Choose one</option>
+          <option>Holiday lighting</option>
+          <option>Permanent lighting</option>
+          <option>Both / help me decide</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="lighting-area">Neighborhood or ZIP code (optional)</label>
+        <input id="lighting-area" maxlength="80" placeholder="e.g. 78247">
+      </div>
+      <div class="field">
+        <label for="lighting-details">What would you like lit? (optional)</label>
+        <textarea id="lighting-details" rows="3" maxlength="500" placeholder="e.g. Front roofline, porch and one tree"></textarea>
+      </div>
+      <p class="fine" id="lighting-photo-note">This opens a text to Cody with your details filled in. For a more accurate quote, you can attach a photo of the front of your home in Messages before sending.</p>
+      <button class="btn" type="submit" aria-describedby="lighting-photo-note">Text My Quote Request</button>
+      <div class="done" id="lighting-draft" hidden>
+        <strong>Text this request to <span class="numInline">812-243-8146</span>.</strong>
+        <a class="btn" id="lighting-sms" href="sms:+18122438146">Open Messages</a>
+        <pre id="lighting-text"></pre>
+        <button class="btn ghost" id="lighting-copy" type="button">Copy request</button>
+      </div>
+      <noscript><p><a href="sms:+18122438146">Text Cody for a free lighting quote</a>.</p></noscript>
+    </form>
+  </div>
+</section>
 
 <section id="how" style="padding-bottom:0">
   <div class="wrap">
@@ -554,6 +621,35 @@ $("qForm").addEventListener("submit",e=>{
   try{window.location.href=href}catch(err){}
 });
 $("copyReq").addEventListener("click",e=>copy($("qText").textContent,e.currentTarget));
+
+// Lighting quotes use the same text-message workflow as yard quotes.
+$("lighting-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const nameField = $("lighting-name");
+  const name = nameField.value.trim();
+  if (!name) {
+    nameField.value = "";
+    nameField.reportValidity();
+    return;
+  }
+  const service = $("lighting-service").value;
+  const area = $("lighting-area").value.trim();
+  const details = $("lighting-details").value.trim();
+  const lines = [
+    `Hi Cody, this is ${name}. I'd like a free lighting quote from RWB Precision Lawn Care.`,
+    `Service: ${service}`,
+  ];
+  if (area) lines.push(`Neighborhood or ZIP: ${area}`);
+  if (details) lines.push(`Details: ${details}`);
+
+  const message = lines.join("\n");
+  const href = "sms:+1" + PHONE.replace(/\D/g, "") + "?&body=" + encodeURIComponent(message);
+  $("lighting-text").textContent = message;
+  $("lighting-sms").href = href;
+  $("lighting-draft").hidden = false;
+  window.location.href = href;
+});
+$("lighting-copy").addEventListener("click", e => copy($("lighting-text").textContent, e.currentTarget));
 
 // before/after slider
 const ba=$("ba"),br=$("baRange");
